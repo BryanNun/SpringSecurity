@@ -7,18 +7,28 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+
 @EnableWebSecurity
 public class MySecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+        .authorizeRequests()                                                                
+            .antMatchers("/signup").permitAll()                  
+            .antMatchers("/avengers/assemble/**").hasRole("CHAMPION")                                      
+            .antMatchers("/secret-bases/**").access("hasRole('DIRECTOR')")            
+            .anyRequest().authenticated()                                                   
+            .and()
+        // ...
+        .formLogin();
+        
+    }
 
     @Override
-protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    auth.inMemoryAuthentication()
-    .withUser("user")
-        .password(encoder.encode("password"))
-        .roles("")
-        .and()
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        auth.inMemoryAuthentication()
     .withUser("Steve")
         .password(encoder.encode("motdepasse"))
         .roles("CHAMPION")
@@ -28,16 +38,4 @@ protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         .roles("DIRECTOR");
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-            http
-                .authorizeRequests()
-                    .antMatchers("/resources/**", "/signup", "/about").permitAll()
-                    .antMatchers("/admin/**").hasRole("ADMIN")
-                    .antMatchers("/db/**").access("hasRole('ADMIN') and hasRole('DBA')")
-                    .anyRequest().authenticated()
-                    .and()
-                // ...
-                .formLogin();
-        }
-    }
+}
